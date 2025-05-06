@@ -1,8 +1,10 @@
 import os
+import sys
 from dotenv import load_dotenv
 from adapters.db_repository import DBRepository
 from adapters.genai_client import GenAIClient
 from use_cases.generate_recommendations import GenerateRecommendations
+
 
 if __name__ == "__main__":
     load_dotenv()
@@ -11,7 +13,18 @@ if __name__ == "__main__":
         f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     )
     db_repo = DBRepository(conn_str)
-    # passa também a URL da API
-    ai_client = GenAIClient(os.getenv("GEMINI_API_KEY"), os.getenv("GEMINI_API_URL"))
-    GenerateRecommendations(db_repo, ai_client).execute()
-    print("Recomendações geradas e salvas.")
+
+    try:
+        ai_client = GenAIClient(
+            os.getenv("GEMINI_API_KEY"), os.getenv("GEMINI_API_URL")
+        )
+    except Exception as e:
+        print(f"Erro na inicialização do GenAIClient: {e}")
+        sys.exit(1)
+
+    try:
+        GenerateRecommendations(db_repo, ai_client).execute()
+        print("Recomendações geradas e salvas.")
+    except Exception as e:
+        print(f"Erro durante geração de recomendações: {e}")
+        sys.exit(1)
