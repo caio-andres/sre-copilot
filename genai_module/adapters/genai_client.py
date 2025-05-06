@@ -1,7 +1,8 @@
 import os
 import socket
 from urllib.parse import urlparse
-from openai import OpenAI
+
+from openai import OpenAI, OpenAIError, RateLimitError
 from requests.exceptions import RequestException
 
 
@@ -11,30 +12,27 @@ class GenAIClient:
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY não definido no .env")
 
-        # Inicializa o cliente OpenAI
         self.client = OpenAI(api_key=self.api_key)
         self.model = model
 
-        # DNS check no host da API
-        # 1) extrai string do base_url
+        # DNS check
         base_url_str = str(self.client._base_url)
-        parsed = urlparse(base_url_str)
-        host = parsed.hostname
+        host = urlparse(base_url_str).hostname
         try:
             socket.gethostbyname(host)
         except socket.gaierror:
             raise RuntimeError(
                 f"Falha ao resolver hostname '{host}'.\n"
-                f"→ Verifique sua conexão de rede e se o host está acessível (ping/{host})."
+                "Verifique sua rede (ping/nslookup) e variáveis de ambiente."
             )
 
     def generate_suggestion(self, incident_description: str) -> str:
         prompt = (
             "Você é um assistente de SRE.\n"
-            "Dada a descrição de um incidente, "
-            "sugira ações corretivas em tópicos:\n\n"
+            "Dada a descrição de um incidente, sugira ações corretivas em tópicos:\n\n"
             f"{incident_description}"
         )
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -42,10 +40,16 @@ class GenAIClient:
                 temperature=0.2,
                 max_tokens=150,
             )
+        except RateLimitError as e:
+            # Captura especificamente 429
+            raise RuntimeError(
+                "Quota excedida na OpenAI API: você ultrapassou sua cota atual."
+            ) from e
+        except OpenAIError as e:
+            raise RuntimeError(f"Erro na OpenAI API: {e}") from e
         except RequestException as e:
             raise RuntimeError(
-                f"Erro ao chamar OpenAI API: {e}\n"
-                "→ Verifique sua conexão e se a API key está correta."
+                f"Erro de rede ao chamar OpenAI API: {e}\n" "Verifique sua conexão."
             ) from e
 
         return response.choices[0].message.content.strip()
