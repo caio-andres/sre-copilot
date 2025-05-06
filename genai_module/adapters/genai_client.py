@@ -3,42 +3,50 @@ import socket
 import requests
 from requests.exceptions import RequestException
 from urllib3.exceptions import NewConnectionError
+from urllib.parse import urlparse
 
 
 class GenAIClient:
-    def __init__(self, api_key: str, api_url: str | None = None):
+    def __init__(
+        self, api_key: str, base_url: str | None = None, model: str = "text-bison-001"
+    ):
         self.api_key = api_key
-        self.url = api_url or os.getenv("GEMINI_API_URL")
-        if not self.url:
-            raise ValueError("GEMINI_API_URL não configurado no ambiente.")
+        self.base_url = base_url or os.getenv("GEMINI_API_URL_BASE")
+        self.model = model
 
-        hostname = self.url.split("://")[-1].split("/")[0]
+        # validação
+        if not self.base_url:
+            raise ValueError("GEMINI_API_URL_BASE não configurado no .env")
+
+        # DNS check
+        host = urlparse(self.base_url).hostname
         try:
-            socket.gethostbyname(hostname)
+            socket.gethostbyname(host)
         except socket.gaierror:
             raise RuntimeError(
-                f"Falha ao resolver hostname '{hostname}'.\n"
-                "→ Verifique se GEMINI_API_URL está correto no seu .env\n"
-                "→ Teste: ping {hostname} ou nslookup {hostname}"
+                f"Falha ao resolver hostname '{host}'.\n"
+                "→ Verifique suas variáveis de ambiente.\n"
+                f"→ Teste: ping {host} / nslookup {host}"
             )
 
     def generate_suggestion(self, incident_description: str) -> str:
-        headers = {"Authorization": f"Bearer {self.api_key}"}
+        # usa o endpoint global sem /projects...
+        path = f"{self.base_url}/models/{self.model}:generateText"
+        url = f"{path}?key={self.api_key}"
+
         payload = {
-            "prompt": (
-                f"Given the following incident description, "
-                f"suggest corrective actions:\n\n{incident_description}"
-            ),
-            "max_tokens": 150,
+            "prompt": {"text": incident_description},
+            "temperature": 0.2,
+            "maxOutputTokens": 150,
         }
+
         try:
-            resp = requests.post(self.url, json=payload, headers=headers, timeout=10)
+            resp = requests.post(url, json=payload, timeout=10)
             resp.raise_for_status()
         except (RequestException, NewConnectionError) as e:
             raise RuntimeError(
-                f"Erro ao chamar GenAI API em '{self.url}': {e}\n"
-                "→ Verifique sua conexão de rede e se a URL está acessível."
+                f"Erro ao chamar GenAI API em '{url}': {e}\n"
+                "→ Verifique sua conexão e se o endpoint está acessível."
             ) from e
 
-        # Extrai texto da resposta
-        return resp.json().get("choices", [{}])[0].get("text", "").strip()
+        return resp.json().get("candidates", [])[0].get("output", "").strip()
