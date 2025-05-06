@@ -1,0 +1,30 @@
+/* src/app/globals.css */
+
+/* 1. Importe apenas o preflight (reset), nada de duplicar imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Importe Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+/* 3. Variáveis e estilo base */
+@layer base {
+  html {
+    font-family: "Poppins", sans-serif;
+    background-color: #0a0a0a; /* cor escura de fundo */
+    color: #e5e5e5; /* cor clara de texto */
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* 4. Componentes globais: .card se você quiser usar a classe CSS pura */
+/*
+@layer components {
+  .card {
+    @apply bg-surface text-foreground border border-border rounded-lg p-6 shadow-lg;
+  }
+}
+*/
