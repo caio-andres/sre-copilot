@@ -1,5 +1,3 @@
-# genai_module/use_cases/generate_recommendations.py
-
 from adapters.db_repository import DBRepository
 from adapters.genai_client import GenAIClient
 from domain.recommendation import Recommendation
