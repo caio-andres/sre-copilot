@@ -17,4 +17,4 @@ if __name__ == "__main__":
     )
     repo = DBRepository(conn)
     FetchIncidents(svc, repo).execute()
-    print("✅ Ingestão completa.")
+    print("Ingestão completa.")
