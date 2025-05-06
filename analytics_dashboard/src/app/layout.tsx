@@ -1,7 +1,11 @@
 // src/app/layout.tsx
 import "./globals.css";
+import { Container } from "../components/ui/container";
 
-export const metadata = { title: "SRE Copilot", description: "Dashboard SRE" };
+export const metadata = {
+  title: "SRE Copilot",
+  description: "Painel SRE Copilot – Monitoramento e recomendações.",
+};
 
 export default function RootLayout({
   children,
@@ -10,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body className="bg-background text-foreground antialiased">
+        <main>{children}</main>
+      </body>
     </html>
   );
 }
