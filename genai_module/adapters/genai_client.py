@@ -3,9 +3,11 @@ import requests
 
 
 class GenAIClient:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, api_url: str | None = None):
         self.api_key = api_key
-        self.url = "https://api.gemini.example.com/v1/generate"
+        self.url = api_url or os.getenv("GEMINI_API_URL")
+        if not self.url:
+            raise ValueError("GEMINI_API_URL não configurado no ambiente.")
 
     def generate_suggestion(self, incident_description: str) -> str:
         headers = {"Authorization": f"Bearer {self.api_key}"}
