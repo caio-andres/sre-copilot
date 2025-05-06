@@ -33,9 +33,11 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "app" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public[0].id
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+
+  subnet_id = values(aws_subnet.public)[0].id
+
   vpc_security_group_ids = [aws_security_group.app_sg.id]
   key_name               = var.ssh_key_name
 
@@ -49,3 +51,4 @@ resource "aws_instance" "app" {
 
   tags = { Name = "sre-copilot-app" }
 }
+

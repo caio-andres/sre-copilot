@@ -1,6 +1,10 @@
+data "aws_availability_zones" "available" {}
+
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
-  tags       = { Name = "sre-copilot-vpc" }
+  tags = {
+    Name = "sre-copilot-vpc"
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -13,14 +17,19 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value
   map_public_ip_on_launch = true
-  tags                    = { Name = "public-${each.value}" }
+  tags = {
+    Name = "public-${each.value}"
+  }
 }
 
 resource "aws_subnet" "private" {
-  for_each   = toset(var.private_subnets)
-  vpc_id     = aws_vpc.main.id
-  cidr_block = each.value
-  tags       = { Name = "private-${each.value}" }
+  count             = length(var.private_subnets)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnets[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  tags = {
+    Name = "private-${var.private_subnets[count.index]}"
+  }
 }
 
 resource "aws_route_table" "public" {
