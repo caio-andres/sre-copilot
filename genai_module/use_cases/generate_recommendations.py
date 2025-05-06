@@ -1,11 +1,7 @@
 from adapters.db_repository import DBRepository
 from adapters.genai_client import GenAIClient
-from adapters.models import RecommendationModel, Base
-from adapters.db_repository import DBRepository
 from domain.recommendation import Recommendation
 from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 
 class GenerateRecommendations:
@@ -16,14 +12,13 @@ class GenerateRecommendations:
     def execute(self):
         incidents = self.db_repo.get_incidents()
         if not incidents:
-            print("Nenhum incidente encontrado para gerar recomendações.")
+            print("⚠️ Nenhum incidente para processar.")
             return
-
         for incident_id, description in incidents:
-            suggestion_text = self.ai_client.generate_suggestion(description)
+            suggestion = self.ai_client.generate_suggestion(description)
             rec = Recommendation(
                 incident_id=incident_id,
-                suggestion=suggestion_text,
-                generated_at=datetime.now(),
+                suggestion=suggestion,
+                generated_at=datetime.utcnow(),
             )
             self.db_repo.save_recommendation(rec)
