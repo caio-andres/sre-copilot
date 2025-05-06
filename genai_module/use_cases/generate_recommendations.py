@@ -1,3 +1,5 @@
+# genai_module/use_cases/generate_recommendations.py
+
 from adapters.db_repository import DBRepository
 from adapters.genai_client import GenAIClient
 from domain.recommendation import Recommendation
@@ -10,10 +12,12 @@ class GenerateRecommendations:
         self.ai_client = ai_client
 
     def execute(self):
-        incidents = self.db_repo.get_incidents()
+        # only new incidents
+        incidents = self.db_repo.get_incidents_without_recommendation()
         if not incidents:
-            print("⚠️ Nenhum incidente para processar.")
+            print("Nenhum incidente novo para gerar recomendações.")
             return
+
         for incident_id, description in incidents:
             suggestion = self.ai_client.generate_suggestion(description)
             rec = Recommendation(
@@ -22,3 +26,5 @@ class GenerateRecommendations:
                 generated_at=datetime.utcnow(),
             )
             self.db_repo.save_recommendation(rec)
+
+        print(f"Geradas e salvas recomendações para {len(incidents)} incidente(s).")
