@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   db:
     build:
@@ -9,6 +10,16 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+
+  dashboard:
+    build:
+      context: ./analytics_dashboard
+    env_file:
+      - .env
+    ports:
+      - "80:3000"
+    depends_on:
+      - db
 
 volumes:
   db_data:
