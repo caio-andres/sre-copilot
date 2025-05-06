@@ -1,44 +1,51 @@
 import os
 import socket
-import requests
 from urllib.parse import urlparse
+from openai import OpenAI
 from requests.exceptions import RequestException
 
 
 class GenAIClient:
-    def __init__(
-        self, api_key: str, base_url: str | None = None, model: str = "text-bison-001"
-    ):
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.base_url = base_url or os.getenv("GEMINI_API_URL_BASE")
+    def __init__(self, api_key: str | None = None, model: str = "gpt-3.5-turbo"):
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OPENAI_API_KEY não definido no .env")
+
+        # Inicializa o cliente OpenAI
+        self.client = OpenAI(api_key=self.api_key)
         self.model = model
-        if not self.base_url:
-            raise ValueError("GEMINI_API_URL_BASE não definido no .env")
-        # DNS check
-        host = urlparse(self.base_url).hostname
+
+        # DNS check no host da API
+        # 1) extrai string do base_url
+        base_url_str = str(self.client._base_url)
+        parsed = urlparse(base_url_str)
+        host = parsed.hostname
         try:
             socket.gethostbyname(host)
         except socket.gaierror:
             raise RuntimeError(
                 f"Falha ao resolver hostname '{host}'.\n"
-                f"→ Verifique GEMINI_API_URL_BASE no seu .env\n"
-                f"→ Teste: ping {host} / nslookup {host}"
+                f"→ Verifique sua conexão de rede e se o host está acessível (ping/{host})."
             )
 
     def generate_suggestion(self, incident_description: str) -> str:
-        url = f"{self.base_url}/models/{self.model}:generateText?key={self.api_key}"
-        payload = {
-            "prompt": {"text": incident_description},
-            "temperature": 0.2,
-            "maxOutputTokens": 150,
-        }
+        prompt = (
+            "Você é um assistente de SRE.\n"
+            "Dada a descrição de um incidente, "
+            "sugira ações corretivas em tópicos:\n\n"
+            f"{incident_description}"
+        )
         try:
-            resp = requests.post(url, json=payload, timeout=10)
-            resp.raise_for_status()
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+                max_tokens=150,
+            )
         except RequestException as e:
             raise RuntimeError(
-                f"Erro ao chamar GenAI API em '{url}': {e}\n"
-                "→ Verifique sua conexão e se o endpoint está acessível."
+                f"Erro ao chamar OpenAI API: {e}\n"
+                "→ Verifique sua conexão e se a API key está correta."
             ) from e
-        data = resp.json()
-        return data.get("candidates", [{}])[0].get("output", "").strip()
+
+        return response.choices[0].message.content.strip()
