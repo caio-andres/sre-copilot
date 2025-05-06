@@ -1,7 +1,17 @@
+# Virtual environment
 .venv
 
+# Environment
 .env
 
+# Cache
 __pycache__
 
+# Dependencies
 node_modules
+
+# Terraform variables & local states
+terraform.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
