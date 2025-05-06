@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react";
 import { useMetrics, useIncidents, useRecommendations } from "../adapters/api";
 import KPI from "../components/KPI";
