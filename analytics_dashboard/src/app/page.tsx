@@ -1,260 +1,132 @@
-// src/app/page.tsx
 "use client";
-
-import React from "react";
+import React, { useState } from "react";
 import { useMetrics, useIncidents, useRecommendations } from "@/adapters/api";
+import { styles } from "./styles";
 
 export default function HomePage() {
-  const { metrics, isLoading: mLoading } = useMetrics();
-  const { incidents, isLoading: iLoading } = useIncidents();
-  const { recommendations, isLoading: rLoading } = useRecommendations();
+  const { metrics, isLoading: mLoad } = useMetrics();
+  const { incidents, isLoading: iLoad } = useIncidents();
+  const { recommendations, isLoading: rLoad } = useRecommendations();
 
-  if (mLoading || iLoading || rLoading) {
+  if (mLoad || iLoad || rLoad)
+    return <div style={styles.loader}>Carregando…</div>;
+
+  const Suggestion = ({ text }: { text: string }) => {
+    const [open, setOpen] = useState(false),
+      limit = 100,
+      isLong = text.length > limit,
+      content = open ? text : text.slice(0, limit) + (isLong ? "…" : "");
+
     return (
-      <div
-        style={{
-          display: "flex",
-          height: "100vh",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#0a0a0a",
-          color: "#888888",
-          fontFamily: "Poppins, sans-serif",
-        }}
-      >
-        Carregando dados…
-      </div>
-    );
-  }
-
-  return (
-    <div
-      style={{
-        backgroundColor: "#0a0a0a",
-        color: "#e5e5e5",
-        fontFamily: "Poppins, sans-serif",
-        minHeight: "100vh",
-        padding: "32px 16px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-        }}
-      >
-        {/* Header */}
-        <header
+      <div style={styles.suggestion}>
+        <div
           style={{
-            textAlign: "center",
-            marginBottom: "32px",
+            maxHeight: open ? undefined : 40,
+            overflow: open ? "visible" : "hidden",
+            transition: "max-height 0.3s ease-in-out",
           }}
         >
-          <h1
-            style={{
-              fontSize: "2.5rem",
-              fontWeight: 700,
-              margin: 0,
-            }}
+          <p style={styles.suggestionText}>{content}</p>
+        </div>
+        {isLong && (
+          <button
+            onClick={() => setOpen(!open)}
+            style={styles.suggestionButton}
           >
-            SRE Copilot
-          </h1>
-          <p
-            style={{
-              marginTop: "8px",
-              fontSize: "1rem",
-              color: "#888888",
-            }}
-          >
-            Aplicação inteligente de monitoramento de incidentes com KPIs,
-            automação e IA.
+            {open ? "Mostrar menos" : "Saiba mais"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const Card = ({ children }: { children: React.ReactNode }) => (
+    <div style={styles.card}>{children}</div>
+  );
+
+  const CardContent = ({
+    label,
+    value,
+    date,
+  }: {
+    label: string;
+    value: string;
+    date: string;
+  }) => (
+    <>
+      <div style={styles.label}>{label.replace(/_/g, " ")}</div>
+      <div style={styles.value}>{value}</div>
+      <div style={styles.date}>{new Date(date).toLocaleString()}</div>
+    </>
+  );
+
+  const Section = ({
+    title,
+    children,
+  }: {
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <section style={styles.section}>
+      <h2 style={styles.sectionTitle}>{title}</h2>
+      <div style={styles.sectionBox}>{children}</div>
+    </section>
+  );
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.wrapper}>
+        <header style={styles.header}>
+          <h1 style={styles.title}>SRE Copilot</h1>
+          <p style={styles.subtitle}>
+            Monitoramento inteligente com KPIs e IA.
           </p>
         </header>
 
-        {/* KPIs Principais */}
-        <section style={{ marginBottom: "48px" }}>
-          <h2
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              marginBottom: "16px",
-            }}
-          >
-            KPIs Principais
-          </h2>
-          <div
-            style={{
-              border: "1px solid #444444",
-              borderRadius: "8px",
-              padding: "16px",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "16px",
-            }}
-          >
-            {metrics?.map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  backgroundColor: "#1f1f1f",
-                  borderRadius: "8px",
-                  flex: "1 1 200px",
-                  padding: "16px",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 500,
-                    color: "#888888",
-                    textTransform: "uppercase",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {m.name.replace(/_/g, " ")}
-                </div>
-                <div
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    color: "#2563eb",
-                  }}
-                >
-                  {m.value.toFixed(2)}
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#888888",
-                    marginTop: "4px",
-                  }}
-                >
-                  {new Date(m.calculated_at).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <Section title="KPIs Principais">
+          {metrics?.map((m) => (
+            <Card key={m.id}>
+              <CardContent
+                label={m.name}
+                value={m.value.toFixed(2)}
+                date={m.calculated_at}
+              />
+            </Card>
+          ))}
+        </Section>
 
-        {/* Incidentes Recentes */}
-        <section>
-          <h2
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              marginBottom: "16px",
-            }}
-          >
-            Incidentes Recentes
-          </h2>
-          <div
-            style={{
-              border: "1px solid #444444",
-              borderRadius: "8px",
-              padding: "16px",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "16px",
-            }}
-          >
-            {incidents?.map((inc) => {
-              const rec = recommendations?.find(
-                (r) => r.incident_id === inc.incident_id
-              );
-              return (
-                <div
-                  key={inc.incident_id}
-                  style={{
-                    backgroundColor: "#1f1f1f",
-                    borderRadius: "8px",
-                    flex: "1 1 200px",
-                    padding: "16px",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "1rem",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {inc.incident_id}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 500,
-                          padding: "2px 6px",
-                          borderRadius: "9999px",
-                          backgroundColor:
-                            inc.status === "resolved" ? "#044f20" : "#715b00",
-                          color:
-                            inc.status === "resolved" ? "#a3f7bf" : "#facc15",
-                        }}
-                      >
-                        {inc.status.replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "#bbbbbb",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {inc.description}
-                    </p>
-                  </div>
-                  {rec ? (
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        padding: "12px",
-                        backgroundColor: "#0a0a0a",
-                        border: "1px solid #444444",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "#e5e5e5",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {rec.suggestion}
-                      </p>
-                    </div>
-                  ) : (
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        fontStyle: "italic",
-                        color: "#888888",
-                        marginTop: "8px",
-                      }}
-                    >
-                      Sem recomendação.
-                    </p>
-                  )}
+        <Section title="Incidentes Recentes">
+          {incidents?.map((inc) => {
+            const rec = recommendations?.find(
+              (r) => r.incident_id === inc.incident_id
+            );
+            return (
+              <Card key={inc.incident_id}>
+                <div style={styles.cardHeader}>
+                  <span style={styles.incId}>{inc.incident_id}</span>
+                  <span
+                    style={{
+                      ...styles.status,
+                      backgroundColor:
+                        inc.status === "resolved" ? "#044f20" : "#715b00",
+                      color: inc.status === "resolved" ? "#a3f7bf" : "#facc15",
+                    }}
+                  >
+                    {inc.status.replace(/_/g, " ")}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+                <p style={styles.desc}>{inc.description}</p>
+                {rec ? (
+                  <div style={styles.recBox}>
+                    <Suggestion text={rec.suggestion} />
+                  </div>
+                ) : (
+                  <p style={styles.noRec}>Sem recomendação.</p>
+                )}
+              </Card>
+            );
+          })}
+        </Section>
       </div>
     </div>
   );

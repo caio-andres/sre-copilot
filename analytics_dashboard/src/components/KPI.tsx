@@ -1,4 +1,3 @@
-// src/components/KPI.tsx
 "use client";
 import React from "react";
 import { Metric } from "../domain/metric";

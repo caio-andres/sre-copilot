@@ -1,4 +1,3 @@
-// src/components/IncidentList.tsx
 "use client";
 import React from "react";
 import { Incident } from "../domain/incident";

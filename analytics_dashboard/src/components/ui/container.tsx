@@ -1,4 +1,3 @@
-// src/components/ui/container.tsx
 import React from "react";
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {}
