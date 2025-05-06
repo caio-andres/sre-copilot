@@ -3,7 +3,7 @@ terraform {
   backend "s3" {
     bucket = "meu-terraform-state-bucket"
     key    = "sre-copilot/terraform.tfstate"
-    region = var.aws_region
+    region = "us-east-1"
   }
 }
 
