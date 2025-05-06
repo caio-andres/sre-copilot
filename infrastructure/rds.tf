@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "main" {
   name       = "sre-copilot-db-subnet-group"
-  subnet_ids = values(aws_subnet.private)[*].id
+  subnet_ids = aws_subnet.private[*].id
   tags       = { Name = "sre-copilot-db-sng" }
 }
 
