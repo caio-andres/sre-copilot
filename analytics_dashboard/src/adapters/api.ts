@@ -6,7 +6,7 @@ import { Recommendation } from "../domain/recommendation";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useMetrics() {
-  const { data, error } = useSWR<Metric[]>("/api/metrics", fetcher);
+  const { data, error } = useSWR<Metric[]>("/api/metrics", fetcher)
   return { metrics: data, isLoading: !error && !data, isError: error };
 }
 
