@@ -10,6 +10,15 @@ export const styles: Record<string, CSSProperties> = {
     color: "#888",
     fontFamily: "Poppins, sans-serif",
   },
+  error: {
+    display: "flex",
+    height: "100vh",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0a0a0a",
+    color: "#888",
+    fontFamily: "Poppins, sans-serif",
+  },
   page: {
     background: "#0a0a0a",
     color: "#e5e5e5",

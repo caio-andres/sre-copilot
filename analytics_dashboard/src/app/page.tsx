@@ -4,12 +4,19 @@ import { useMetrics, useIncidents, useRecommendations } from "@/adapters/api";
 import { styles } from "./styles";
 
 export default function HomePage() {
-  const { metrics, isLoading: mLoad } = useMetrics();
-  const { incidents, isLoading: iLoad } = useIncidents();
-  const { recommendations, isLoading: rLoad } = useRecommendations();
+  const { metrics, isLoading: mLoad, isError: mError } = useMetrics();
+  const { incidents, isLoading: iLoad, isError: iError } = useIncidents();
+  const {
+    recommendations,
+    isLoading: rLoad,
+    isError: rError,
+  } = useRecommendations();
 
   if (mLoad || iLoad || rLoad)
     return <div style={styles.loader}>Carregando…</div>;
+  if (mError || iError || rError) {
+    return <div style={styles.error}>Erro ao carregar.</div>;
+  }
 
   const Suggestion = ({ text }: { text: string }) => {
     const [open, setOpen] = useState(false),
