@@ -12,8 +12,10 @@ export default function HomePage() {
     isError: rError,
   } = useRecommendations();
 
-  if (mLoad || iLoad || rLoad)
+  if (mLoad || iLoad || rLoad) {
     return <div style={styles.loader}>Carregando…</div>;
+  }
+
   if (mError || iError || rError) {
     return <div style={styles.error}>Erro ao carregar.</div>;
   }
