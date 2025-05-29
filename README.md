@@ -136,4 +136,4 @@ Usamos Terraform para orquestrar:
 
 ---
 
-> _Esse README serve como base para seu portfólio — ajuste conforme necessário!_
+> _Desenvolvido com esforço por @caio-andres 😼_
